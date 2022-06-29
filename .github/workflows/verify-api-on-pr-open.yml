@@ -1,0 +1,87 @@
+name: Verify package API
+
+on:
+  pull_request:
+    # by default, this will run on [opened, synchronize, reopened] events
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+    # only consider PRs with changes to rust files
+    paths:
+      - '**.rs'
+    # branches: [master]
+
+permissions:
+  id-token: write
+  # contents: read
+  # packages: write
+
+env:
+  NODE_VERSION: 17.0.1
+  ANCHOR_VERSION: 0.22.0
+  SOLANA_VERSION_STABLE: 1.9.22
+  RUST_TOOLCHAIN: stable
+
+jobs:
+  dump-context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+  get-changes-scope:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.map-changed-files-to-pkg.outputs.result }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: List changed files
+        uses: ./.github/actions/list-changed-files
+        id: list-changed-files
+        with:
+          pull-number: ${{ github.event.pull_request.number }}
+          # include: ['program'] # filter out non-rust files
+
+      # map fetched changed files to package / lang (list)
+      - name: Get scope of changed packages
+        uses: actions/github-script@v4
+        id: map-changed-files-to-pkg
+        with:
+          # update regexp to consider other subdirs - e.g. `rust|test|cli|<etc>`
+          script: |
+            const files = ${{ steps.list-changed-files.outputs.changed-files }}
+            const uniqueFilesObj = files
+              .filter(f => f.includes('program'))
+              .reduce((p, file) => {
+                const pkgForFile = file.split("/")[0];
+                if (!p[pkgForFile]) p[pkgForFile] = 1
+                return p
+              }, {})
+            return JSON.stringify(Array.from(Object.keys(uniqueFilesObj)).map((el) => `\"${el}\"`))
+
+  update-pr-with-changes:
+    needs: [get-changes-scope]
+    # if: ${{ needs.get-version-scope.outputs.has-versioning == 'true' }}
+    # todo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: List changed files in a PR
+        id: something-here
+        # todo: does this work?
+        # install rust?
+        run: |
+          for pkg in ${{ needs.get-changes-scopeoutputs.packages }}; do
+            echo "$pkg"
+          done
+
+  # cd $pkg/js
+  # yarn install && yarn add -D @metaplex-foundation/solita
+  # yarn api:gen
+  # # ignore local package.json changes
+  # git restore package.json package.lock
+  # if [[ $(git diff --stat) != '' ]]; then
+  #   # core set failed?
+  #   echo "::set-output name=pull-number::fail"
+  # fi
