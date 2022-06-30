@@ -1,19 +1,19 @@
 name: Sync versions on PR merge
 
 on:
-  # push:
-  #   branches: [master]
+  push:
+    branches: [master]
 
-  workflow_dispatch:
-    inputs:
-      changed-packages:
-        description: 'packages'
-        required: true
-        default: '["candy-machine/js"]'
-      commit-sha:
-        description: 'commit-sha'
-        required: true
-        default: 'pls input'
+  # workflow_dispatch:
+  #   inputs:
+  #     changed-packages:
+  #       description: 'packages'
+  #       required: true
+  #       default: '["candy-machine/js"]'
+  #     commit-sha:
+  #       description: 'commit-sha'
+  #       required: true
+  #       default: 'pls input'
 
 permissions:
   id-token: write
@@ -48,8 +48,8 @@ jobs:
         uses: ./.github/actions/get-pr-for-commit
         id: get-pr-for-commit
         with:
-          commit-sha: ${{ inputs.commit-sha }}
-          #  commit-sha: ${{ github.sha }}
+          # commit-sha: ${{ inputs.commit-sha }}
+          commit-sha: ${{ github.sha }}
 
       - name: List changed files
         uses: ./.github/actions/list-changed-files
