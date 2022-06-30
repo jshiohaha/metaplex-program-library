@@ -100,10 +100,11 @@ jobs:
             if [[ $(git diff --stat) != '' ]]; then
               echo "::set-output name=failed::true"
               break
+            else
+              echo "::set-output name=failed::false"
             fi
             cd ../..
           done
-          echo "::set-output name=failed::false"
 
       - uses: actions/github-script@v4
         if: steps.generate-package-api.outputs.failed == 'true'
