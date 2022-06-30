@@ -1,10 +1,5 @@
-arr=("candy-machine")
-for pkg in "${arr[@]}"; do
+pkgs="candy-machine token-metadata"
+pkgs=(${pkgs//\"})
+for pkg in "${pkgs[@]}"; do
   echo "$pkg"
 done
-
-# for i in 
-# do
-#    : 
-#    # do whatever on "$i" here
-# done
