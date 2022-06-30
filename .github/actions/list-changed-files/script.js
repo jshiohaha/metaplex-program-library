@@ -47,7 +47,10 @@ const fetchAllChangedFiles = async (
     console.log(include);
     console.log(result);
     result = result.filter((f) => {
+      console.log('f: ', f);
       return include.reduce((prev, path) => {
+        console.log('path: ', path);
+        console.log('f.includes(path): ', f.includes(path));
         return prev && f.includes(path);
       }, true);
     });
