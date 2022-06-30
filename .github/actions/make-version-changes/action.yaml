@@ -35,7 +35,7 @@ runs:
 
     - name: Install dependency packages for script
       run: |
-        yarn install && yarn add @iarna/toml
+        YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && yarn add @iarna/toml
       shell: bash
 
     - name: Make version changes
