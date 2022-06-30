@@ -40,5 +40,8 @@
     "eslint-plugin-prettier": "^4.0.0",
     "lerna": "^4.0.0",
     "prettier": "^2.4.1"
+  },
+  "dependencies": {
+    "@iarna/toml": "^2.2.5"
   }
 }
