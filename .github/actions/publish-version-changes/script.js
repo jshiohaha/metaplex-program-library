@@ -26,6 +26,13 @@ const isNpmPackage = (actual) => isPackageType(actual, 'js');
 // assume most basic versioning for now: `major.minor.patch`; only publish package if local != remote, assuming local >= remote
 const shouldPublishPackage = (localVersion, remoteVersion) => localVersion !== remoteVersion;
 
+const addTag = (tagName) => {
+  console.log(
+    `adding tag ${tagName}`,
+    wrappedExec(`git tag ${tagName} && git push origin ${tagName}`),
+  );
+};
+
 // npm package helpers
 
 const getLocalNpmPackageInfo = (cwd) => {
@@ -55,8 +62,11 @@ const tryPublishNpmPackage = async (npmToken, cwdArgs) => {
   console.log(`[REMOTE] name: ${packageName}, version: ${remotePackageVersion}`);
 
   if (shouldPublishPackage(localPackageVersion, remotePackageVersion)) {
-    wrappedExec(`echo "//registry.npmjs.org/:_authToken=${npmToken}" > ~/.npmrc`, currentDir);
-    wrappedExec(`npm publish`, currentDir);
+    // wrappedExec(`echo "//registry.npmjs.org/:_authToken=${npmToken}" > ~/.npmrc`, currentDir);
+    // wrappedExec(`npm publish`, currentDir);
+
+    const tagName = `${packageName}@${localPackageVersion}`;
+    addTag(tagName);
   } else {
     console.log('no publish needed');
   }
@@ -100,7 +110,10 @@ const tryPublishCratesPackage = async (cargoToken, cwdArgs) => {
 
   // only publish if local != remote crate version
   if (shouldPublishPackage(localCrateVersion, remoteCrateVersion)) {
-    wrappedExec(`cargo publish --token ${cargoToken} -p ${crateName}`, currentDir);
+    // wrappedExec(`cargo publish --token ${cargoToken} -p ${crateName}`, currentDir);
+
+    const tagName = `${crateName}-v${localCrateVersion}`;
+    addTag(tagName);
   } else {
     console.log('no publish needed');
   }

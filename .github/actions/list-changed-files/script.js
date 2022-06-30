@@ -1,19 +1,20 @@
-// add to action input params at some point
-const PATHS_TO_IGNORE = [
-  '.github',
-  'Cargo.lock',
-  'Cargo.toml',
-  'js/idl',
-  'packge.json',
-  'yarn.lock',
-];
+// // add to action input params at some point
+// const PATHS_TO_IGNORE = [
+//   '.github',
+//   'Cargo.lock',
+//   'Cargo.toml',
+//   'js/idl',
+//   'packge.json',
+//   'yarn.lock',
+// ];
 
 const fetchAllChangedFiles = async (
   github,
   owner,
   repo,
   pull_number,
-  excludePaths = [],
+  include, // [] | undefined
+  exclude, // [] | undefined
   per_page = 100,
 ) => {
   let page = 0;
@@ -35,20 +36,34 @@ const fetchAllChangedFiles = async (
     page += 1;
   }
 
-  return Array.from(files).filter((f) => {
-    return excludePaths.reduce((prev, path) => {
-      return prev && !f.includes(path);
-    }, true);
-  });
+  let result = Array.from(files);
+  if (include) {
+    result = result.filter((f) => {
+      return include.reduce((prev, path) => {
+        return prev && f.includes(path);
+      }, true);
+    });
+  }
+
+  if (exclude) {
+    result = result.filter((f) => {
+      return exclude.reduce((prev, path) => {
+        return prev && !f.includes(path);
+      }, true);
+    });
+  }
+
+  return result;
 };
 
-module.exports = async ({ github, context, core }, pull_number) => {
+module.exports = async ({ github, context, core }, pull_number, include, exclude) => {
   const changedFiles = await fetchAllChangedFiles(
     github,
     context.repo.owner,
     context.repo.repo,
     pull_number,
-    PATHS_TO_IGNORE,
+    include,
+    exclude,
   );
 
   core.exportVariable(
