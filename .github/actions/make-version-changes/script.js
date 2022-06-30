@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const path = require('path');
 const toml = require('@iarna/toml');
@@ -147,7 +146,7 @@ const updateCratesPackage = (cwdArgs, pkg, semvar) => {
 const updateNpmPackage = (cwdArgs, _pkg, semvar) => {
   console.log(
     'updating js package',
-    wrappedExec(`npm version ${semvar} && git push`, cwdArgs.join('/')),
+    wrappedExec(`yarn install && npm version ${semvar} && git push`, cwdArgs.join('/')),
   );
 };
 
