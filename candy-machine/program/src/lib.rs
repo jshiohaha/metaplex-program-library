@@ -15,6 +15,7 @@ declare_id!("cndy3Z4yapfJBmL3ShUp5exZKqR3z33thTzeNMm2gRZ");
 pub mod candy_machine {
     use super::*;
 
+    // yo
     pub fn initialize_candy_machine(
         ctx: Context<InitializeCandyMachine>,
         data: CandyMachineData,
