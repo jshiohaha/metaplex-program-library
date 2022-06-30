@@ -18,20 +18,20 @@ runs:
       with:
         ref: ${{ inputs.branch }}
 
-    # cache and install cargo release
-    - uses: actions/cache@v2
-      name: Cache Cargo Release
-      id: cache-cargo-release
-      with:
-        path: |
-          ~/.cargo/bin/cargo-release
-        key: cargo-release-${{ runner.os }}
+    # # cache and install cargo release
+    # - uses: actions/cache@v2
+    #   name: Cache Cargo Release
+    #   id: cache-cargo-release
+    #   with:
+    #     path: |
+    #       ~/.cargo/bin/cargo-release
+    #     key: cargo-release-${{ runner.os }}
 
-    - name: Install Cargo Release
-      if: steps.cache-cargo-release.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        cargo install cargo-release
+    # - name: Install Cargo Release
+    #   if: steps.cache-cargo-release.outputs.cache-hit != 'true'
+    #   shell: bash
+    #   run: |
+    #     cargo install cargo-release
 
     - name: Install dependency packages for script
       run: |
