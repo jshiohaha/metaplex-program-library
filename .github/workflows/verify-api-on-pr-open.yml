@@ -1,13 +1,13 @@
 name: Verify package API
 
-on:
-  pull_request:
-    # by default, this will run on [opened, synchronize, reopened] events
-    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-    # only consider PRs with changes to rust files
-    paths:
-      - '**.rs'
-    # branches: [master]
+# on:
+#   pull_request:
+#     # by default, this will run on [opened, synchronize, reopened] events
+#     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+#     # only consider PRs with changes to rust files
+#     paths:
+#       - '**.rs'
+#     # branches: [master]
 
 on:
   workflow_dispatch:
