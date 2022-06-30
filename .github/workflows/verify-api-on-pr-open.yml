@@ -41,7 +41,6 @@ jobs:
         id: list-changed-files
         with:
           pull-number: ${{ github.event.pull_request.number }}
-          # include: ['program'] # filter out non-rust files
 
       # map fetched changed files to package / lang (list)
       - name: Get scope of changed packages
@@ -55,6 +54,7 @@ jobs:
               .filter(f => f.includes('program'))
               .reduce((p, file) => {
                 const pkgForFile = file.split("/")[0];
+                console.log("pkgForFile: ", pkgForFile);
                 if (!p[pkgForFile]) p[pkgForFile] = 1
                 return p
               }, {})
