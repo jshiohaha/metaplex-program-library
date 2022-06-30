@@ -1,18 +1,24 @@
 name: Verify package API
 
+# on:
+#   pull_request:
+#     # by default, this will run on [opened, synchronize, reopened] events
+#     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+#     # only consider PRs with changes to rust files
+#     paths:
+#       - '**.rs'
+#     # branches: [master]
+
 on:
-  pull_request:
-    # by default, this will run on [opened, synchronize, reopened] events
-    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-    # only consider PRs with changes to rust files
-    paths:
-      - '**.rs'
-    # branches: [master]
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'Space separated pkg names'
+        required: true
+        default: 'candy-machine auction-house'
 
 permissions:
   id-token: write
-  # contents: read
-  # packages: write
 
 env:
   NODE_VERSION: 17.0.1
@@ -30,43 +36,39 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
-  get-changes-scope:
-    runs-on: ubuntu-latest
-    outputs:
-      packages: ${{ steps.map-changed-files-to-pkg.outputs.result }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: List changed files
-        uses: ./.github/actions/list-changed-files
-        id: list-changed-files
-        with:
-          pull-number: ${{ github.event.pull_request.number }}
+  # get-changes-scope:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     packages: ${{ steps.map-changed-files-to-pkg.outputs.result }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: List changed files
+  #       uses: ./.github/actions/list-changed-files
+  #       id: list-changed-files
+  #       with:
+  #         pull-number: ${{ github.event.pull_request.number }}
 
-      # map fetched changed files to package / lang (list)
-      - name: Get scope of changed packages
-        uses: actions/github-script@v4
-        id: map-changed-files-to-pkg
-        with:
-          # update regexp to consider other subdirs - e.g. `rust|test|cli|<etc>`
-          # .map((el) => `\"${el}\"`)
-          script: |
-            const files = ${{ steps.list-changed-files.outputs.changed-files }}
-            const uniqueFilesObj = files
-              .filter(f => f.includes('program'))
-              .reduce((p, file) => {
-                const pkgForFile = file.split("/")[0];
-                console.log("pkgForFile: ", pkgForFile);
-                if (!p[pkgForFile]) p[pkgForFile] = 1
-                return p
-              }, {})
-            let result = Array.from(Object.keys(uniqueFilesObj)).join(" ")
-            console.log("result: ", result)
-            return result
+  #     # map fetched changed files to package / lang (list)
+  #     - name: Get scope of changed packages
+  #       uses: actions/github-script@v4
+  #       id: map-changed-files-to-pkg
+  #       with:
+  #         # update regexp to consider other subdirs - e.g. `rust|test|cli|<etc>`
+  #         # .map((el) => `\"${el}\"`)
+  #         script: |
+  #           const files = ${{ steps.list-changed-files.outputs.changed-files }}
+  #           const uniqueFilesObj = files
+  #             .filter(f => f.includes('program'))
+  #             .reduce((p, file) => {
+  #               const pkgForFile = file.split("/")[0];
+  #               console.log("pkgForFile: ", pkgForFile);
+  #               if (!p[pkgForFile]) p[pkgForFile] = 1
+  #               return p
+  #             }, {})
+  #           return Array.from(Object.keys(uniqueFilesObj)).join(" ")
 
   update-pr-with-changes:
-    needs: [get-changes-scope]
-    # if: ${{ needs.get-version-scope.outputs.has-versioning == 'true' }}
-    # todo
+    # needs: [get-changes-scope]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -83,8 +85,9 @@ jobs:
         id: something-here
         # todo: does this work?
         # install rust?
+        # pkgs=${{ needs.get-changes-scope.outputs.packages }}
         run: |
-          pkgs=${{ needs.get-changes-scope.outputs.packages }}
+          pkgs=${{ inputs.packages }}
           pkgs=(${pkgs//\"})
           for pkg in "${pkgs[@]}"; do
             echo "cd to $pkg/js"
@@ -92,7 +95,7 @@ jobs:
             echo "=============================="
             yarn install && yarn add -D @metaplex-foundation/solita
             yarn api:gen
-            git restore package.json package.lock
+            git restore package.json
             git status
             echo "=============================="
             echo "cd to root"
