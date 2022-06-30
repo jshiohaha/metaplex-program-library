@@ -48,6 +48,7 @@ jobs:
         id: map-changed-files-to-pkg
         with:
           # update regexp to consider other subdirs - e.g. `rust|test|cli|<etc>`
+          # .map((el) => `\"${el}\"`)
           script: |
             const files = ${{ steps.list-changed-files.outputs.changed-files }}
             const uniqueFilesObj = files
@@ -58,7 +59,7 @@ jobs:
                 if (!p[pkgForFile]) p[pkgForFile] = 1
                 return p
               }, {})
-            const result = Array.from(Object.keys(uniqueFilesObj)).map((el) => `\"${el}\"`)
+            const result = Array.from(Object.keys(uniqueFilesObj))
             console.log("result: ", result)
             return result
 
