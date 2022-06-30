@@ -70,6 +70,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/install-linux-build-deps
+      - uses: ./.github/actions/install-rust
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
       - name: List changed files in a PR
         id: something-here
         # todo: does this work?
