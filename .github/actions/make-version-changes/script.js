@@ -108,7 +108,7 @@ const updateIdlWithVersion = (idlPath, cargoPath) => {
   }
 
   var idl = JSON.parse(fs.readFileSync(idlPath, 'utf8'));
-  console.log(`updating IDL at ${idlPath} from ${idl['version']} to ${version}`);
+  console.log(`updating IDL at ${idlPath} from ${idl['version']} to ${crateVersion}`);
   idl['version'] = crateVersion;
 
   fs.writeFileSync(idlPath, JSON.stringify(idl, null, 2));
