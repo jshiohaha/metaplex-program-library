@@ -38,6 +38,7 @@ const fetchAllChangedFiles = async (
 
   let result = Array.from(files);
   if (include) {
+    console.log('include');
     console.log(include);
     // it's possible exclude is a stringified arr
     if (typeof include === 'string') {
@@ -54,6 +55,7 @@ const fetchAllChangedFiles = async (
   }
 
   if (exclude) {
+    console.log('exclude');
     console.log(exclude);
     // it's possible exclude is a stringified arr
     if (typeof exclude === 'string') {
