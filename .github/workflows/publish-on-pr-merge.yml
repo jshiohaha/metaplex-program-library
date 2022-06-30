@@ -1,14 +1,23 @@
-
-name: Version updates
+name: Sync versions on PR merge
 
 on:
-  pull_request_review:
-    types: [submitted, edited]
+  push:
+    branches: [master]
+
+  # workflow_dispatch:
+  #   inputs:
+  #     # changed-packages:
+  #     #   description: 'packages'
+  #     #   required: true
+  #     #   default: '["candy-machine/js"]'
+  #     commit-sha:
+  #       description: 'commit-sha'
+  #       required: true
+  #       default: 'pls input'
 
 permissions:
   id-token: write
   contents: write
-  packages: write
 
 env:
   NODE_VERSION: 17.0.1
@@ -26,21 +35,28 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
+  # alt: on version, publish comment or label and then parse here.
   get-changes-scope:
-    if:
-      contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.review.author_association) == true &&
-      contains(fromJson('["approved", "commented"]'), github.event.review.state) == true
     runs-on: ubuntu-latest
     outputs:
       changed-packages: ${{ steps.get-changed-package-scope.outputs.result }}
     steps:
       - uses: actions/checkout@v3
+
+      - name: Get PR for push event HEAD commit
+        uses: ./.github/actions/get-pr-for-commit
+        id: get-pr-for-commit
+        with:
+          # commit-sha: ${{ inputs.commit-sha }}
+          commit-sha: ${{ github.sha }}
+
       - name: List changed files
         uses: ./.github/actions/list-changed-files
         id: list-changed-files
         with:
-          pull-number: ${{ github.event.pull_request.number }}
-          exclude: '[".github", "Cargo.lock", "Cargo.toml", "js/idl", "packge.json", "yarn.lock"]'
+          pull-number: ${{ steps.get-pr-for-commit.outputs.pull-number }}
+          # only include files which might contain version bumps
+          include: '["package.json", "Cargo.toml"]'
 
       # map fetched changed files to package / lang (list)
       - name: Get scope of changed packages
@@ -59,4 +75,18 @@ jobs:
               }
               return p
             }, {})
-            return JSON.stringify(Array.from(Object.keys(uniqueFilesObj)).map((el) => `\"${el}\"`))
+            return Array.from(Object.keys(uniqueFilesObj))
+
+  publish-version-changes:
+    needs: [get-changes-scope]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Publish version changes
+        uses: ./.github/actions/publish-version-changes
+        id: publish-version-changes
+        with:
+          changed-packages: ${{ needs.get-changes-scope.outputs.changed-packages }}
+          # todo
+          cargo-token: 'null' # ${{ secrets.CARGO_TOKEN }}
+          npm-token: 'null' # ${{ secrets.NPM_TOKEN }}
