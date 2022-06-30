@@ -77,7 +77,7 @@ jobs:
         run: |
           pkgs=(${{ needs.get-changes-scope.outputs.packages }})
           for pkg in "${pkgs[@]}"; do
-            cd $pkg/js
+            cd "$pkg/js"
             echo "$pkg/js"
             ls
             cd ..
