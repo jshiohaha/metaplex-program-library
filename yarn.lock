@@ -950,7 +950,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metaplex-foundation/beet@npm:>=0.1.0":
+"@metaplex-foundation/beet-solana@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metaplex-foundation/beet-solana@npm:0.2.0"
+  dependencies:
+    "@metaplex-foundation/beet": ">=0.1.0"
+    "@solana/web3.js": ^1.44.0
+  checksum: 69fda09fe354922a3447df757510e60e322cd94e86428378b944da9ec399a2861517a44f2aa0184fdee24837c5ac98a9f3e8441d3e4f98f336e90cc94f614475
+  languageName: node
+  linkType: hard
+
+"@metaplex-foundation/beet@npm:>=0.1.0, @metaplex-foundation/beet@npm:^0.3.0":
   version: 0.3.0
   resolution: "@metaplex-foundation/beet@npm:0.3.0"
   dependencies:
@@ -1013,7 +1023,7 @@ __metadata:
     "@metaplex-foundation/beet": ^0.1.0
     "@metaplex-foundation/beet-solana": ^0.1.1
     "@metaplex-foundation/cusper": ^0.0.2
-    "@metaplex-foundation/solita": ^0.5.0
+    "@metaplex-foundation/solita": ^0.11.0
     "@solana/web3.js": ^1.35.1
     "@types/tape": ^4.13.2
     bn.js: ^5.2.0
@@ -1271,6 +1281,26 @@ __metadata:
     text-table: ^0.2.0
     toml: ^3.0.0
   checksum: 042eb8cb729e886477efa885693dadcf31722c071f8adc5a49509483d846d4d359999b9f2beff9406f4dc9fa0a0f0bdb37be4b0c68426864f9f9f60b456cc74b
+  languageName: node
+  linkType: hard
+
+"@metaplex-foundation/solita@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "@metaplex-foundation/solita@npm:0.11.0"
+  dependencies:
+    "@metaplex-foundation/beet": ^0.3.0
+    "@metaplex-foundation/beet-solana": ^0.2.0
+    "@metaplex-foundation/rustbin": ^0.3.0
+    "@solana/web3.js": ^1.36.0
+    camelcase: ^6.2.1
+    debug: ^4.3.3
+    js-sha256: ^0.9.0
+    prettier: ^2.5.1
+    snake-case: ^3.0.4
+    spok: ^1.4.3
+  bin:
+    solita: dist/src/cli/solita.js
+  checksum: 3ee2e30bb2cd278f39f2ea353fe68ef38948dbd69a6ce6d6d48b57038da51cec960183b02d8d6dfca55bff58990ff39f04530c0ff99d6da82325cfd14b8b6b7d
   languageName: node
   linkType: hard
 
@@ -1753,6 +1783,30 @@ __metadata:
     superstruct: ^0.14.2
     tweetnacl: ^1.0.0
   checksum: bbb5f83956111f0a8ddcc1d896402747c1bb523c5b99573011138260fcf7eca504a52c3e5faeed0aa974f13d02fb83710c1a45fae5aefdd1c49a18989c46ab72
+  languageName: node
+  linkType: hard
+
+"@solana/web3.js@npm:^1.44.0":
+  version: 1.46.0
+  resolution: "@solana/web3.js@npm:1.46.0"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+    "@ethersproject/sha2": ^5.5.0
+    "@solana/buffer-layout": ^4.0.0
+    bigint-buffer: ^1.1.5
+    bn.js: ^5.0.0
+    borsh: ^0.7.0
+    bs58: ^4.0.1
+    buffer: 6.0.1
+    fast-stable-stringify: ^1.0.0
+    jayson: ^3.4.4
+    js-sha3: ^0.8.0
+    node-fetch: 2
+    rpc-websockets: ^7.5.0
+    secp256k1: ^4.0.2
+    superstruct: ^0.14.2
+    tweetnacl: ^1.0.0
+  checksum: 5b00911060695014011d2e70f260dc89c2f497e311d7e5e7d5820e365301cd2b1103935cf7831ada08f4cea6e3bbc317351dfc09791dae9a4f3faed3919fff59
   languageName: node
   linkType: hard
 
@@ -7250,7 +7304,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rpc-websockets@npm:^7.4.2":
+"rpc-websockets@npm:^7.4.2, rpc-websockets@npm:^7.5.0":
   version: 7.5.0
   resolution: "rpc-websockets@npm:7.5.0"
   dependencies:

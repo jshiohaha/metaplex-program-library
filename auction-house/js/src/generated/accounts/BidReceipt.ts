@@ -30,7 +30,7 @@ export type BidReceiptArgs = {
   canceledAt: beet.COption<beet.bignum>;
 };
 
-const bidReceiptDiscriminator = [186, 150, 141, 135, 59, 122, 39, 99];
+export const bidReceiptDiscriminator = [186, 150, 141, 135, 59, 122, 39, 99];
 /**
  * Holds the data for the {@link BidReceipt} Account and provides de/serialization
  * functionality for that data

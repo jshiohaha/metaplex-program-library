@@ -20,7 +20,7 @@ export type AuctioneerArgs = {
   scopes: boolean[] /* size: 7 */;
 };
 
-const auctioneerDiscriminator = [46, 101, 92, 150, 138, 30, 245, 120];
+export const auctioneerDiscriminator = [46, 101, 92, 150, 138, 30, 245, 120];
 /**
  * Holds the data for the {@link Auctioneer} Account and provides de/serialization
  * functionality for that data

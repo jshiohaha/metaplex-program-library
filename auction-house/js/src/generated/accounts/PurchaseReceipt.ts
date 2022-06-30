@@ -26,7 +26,7 @@ export type PurchaseReceiptArgs = {
   createdAt: beet.bignum;
 };
 
-const purchaseReceiptDiscriminator = [79, 127, 222, 137, 154, 131, 150, 134];
+export const purchaseReceiptDiscriminator = [79, 127, 222, 137, 154, 131, 150, 134];
 /**
  * Holds the data for the {@link PurchaseReceipt} Account and provides de/serialization
  * functionality for that data

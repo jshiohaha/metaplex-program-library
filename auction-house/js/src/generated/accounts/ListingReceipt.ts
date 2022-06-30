@@ -29,7 +29,7 @@ export type ListingReceiptArgs = {
   canceledAt: beet.COption<beet.bignum>;
 };
 
-const listingReceiptDiscriminator = [240, 71, 225, 94, 200, 75, 84, 231];
+export const listingReceiptDiscriminator = [240, 71, 225, 94, 200, 75, 84, 231];
 /**
  * Holds the data for the {@link ListingReceipt} Account and provides de/serialization
  * functionality for that data

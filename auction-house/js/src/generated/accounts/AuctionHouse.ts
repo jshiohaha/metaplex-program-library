@@ -33,7 +33,7 @@ export type AuctionHouseArgs = {
   auctioneerPdaBump: number;
 };
 
-const auctionHouseDiscriminator = [40, 108, 215, 107, 213, 85, 245, 48];
+export const auctionHouseDiscriminator = [40, 108, 215, 107, 213, 85, 245, 48];
 /**
  * Holds the data for the {@link AuctionHouse} Account and provides de/serialization
  * functionality for that data
