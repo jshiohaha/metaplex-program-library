@@ -26,7 +26,7 @@ runs:
           const { data } = await github.request(
             "GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls",
             {
-              owner: 'jshiohaha',
+              owner: 'metaplex-foundation',
               repo: 'metaplex-program-library',
               commit_sha: '${{ inputs.commit-sha }}'
             })

@@ -75,7 +75,7 @@ const fetchAllChangedFiles = async (
 module.exports = async ({ github, context, core }, pull_number, include, exclude) => {
   const changedFiles = await fetchAllChangedFiles(
     github,
-    context.repo.owner,
+    'metaplex-foundation', // context.repo.owner,
     context.repo.repo,
     pull_number,
     include,
