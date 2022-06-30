@@ -147,7 +147,7 @@ const updateCratesPackage = (cwdArgs, pkg, semvar) => {
 const updateNpmPackage = (cwdArgs, _pkg, semvar) => {
   console.log(
     'updating js package',
-    wrappedExec(`yarn install && npm version ${semvar} && git push`, cwdArgs.join('/')),
+    wrappedExec(`npm version ${semvar} && git push`, cwdArgs.join('/')),
   );
 };
 
