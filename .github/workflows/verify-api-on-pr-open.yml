@@ -79,9 +79,13 @@ jobs:
           pkgs=(${pkgs//\"})
           for pkg in "${pkgs[@]}"; do
             echo "$pkg/js"
+            echo "=============================="
             cd "$pkg/js"
             ls
+            echo "=============================="
             cd ..
+            ls
+            echo "=============================="
           done
 
   # cd $pkg/js
