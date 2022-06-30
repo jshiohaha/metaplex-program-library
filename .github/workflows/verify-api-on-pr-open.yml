@@ -78,21 +78,24 @@ jobs:
           pkgs=${{ needs.get-changes-scope.outputs.packages }}
           pkgs=(${pkgs//\"})
           for pkg in "${pkgs[@]}"; do
-            echo "$pkg/js"
-            echo "=============================="
+            echo "cd to $pkg/js"
             cd "$pkg/js"
-            ls
             echo "=============================="
+            yarn install && yarn add -D @metaplex-foundation/solita
+            yarn api:gen
+            git restore package.json package.lock
+            git status
+            echo "=============================="
+            echo "cd to root"
             cd ../..
-            ls
             echo "=============================="
           done
 
   # cd $pkg/js
-  # yarn install && yarn add -D @metaplex-foundation/solita
-  # yarn api:gen
+  #
+  #
   # # ignore local package.json changes
-  # git restore package.json package.lock
+  #
   # if [[ $(git diff --stat) != '' ]]; then
   #   # core set failed?
   #   echo "::set-output name=pull-number::fail"
