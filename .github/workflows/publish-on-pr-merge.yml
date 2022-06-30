@@ -77,7 +77,7 @@ jobs:
               }
               return p
             }, {})
-            return JSON.stringify(Array.from(Object.keys(uniqueFilesObj)).map((el) => `\"${el}\"`))
+            return JSON.stringify(Array.from(Object.keys(uniqueFilesObj))
 
   publish-version-changes:
     needs: [get-changes-scope]

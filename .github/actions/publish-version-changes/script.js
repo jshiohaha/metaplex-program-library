@@ -138,7 +138,10 @@ module.exports = async (packages, cargoToken, npmToken) => {
   const parentDirsToHome = 4; // ~/<home>/./.github/actions/<name>
   const cwdArgs = splitBase.slice(0, splitBase.length - parentDirsToHome);
 
-  for (let package of packages) {
+  // it's possible exclude is a stringified arr
+  const packageIter = typeof packages === 'string' ? (packages = JSON.parse(packages)) : packages;
+
+  for (let package of packageIter) {
     // make sure package doesn't have extra quotes or spacing
     package = package.replace(/\s+|\"|\'/g, '');
     const [name, type] = package.split('/');
