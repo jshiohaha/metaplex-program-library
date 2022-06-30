@@ -75,10 +75,11 @@ jobs:
         # todo: does this work?
         # install rust?
         run: |
-          pkgs=(${{ needs.get-changes-scope.outputs.packages }})
+          pkgs=${{ needs.get-changes-scope.outputs.packages }}
+          pkgs=(${pkgs//\"})
           for pkg in "${pkgs[@]}"; do
-            cd "$pkg/js"
             echo "$pkg/js"
+            cd "$pkg/js"
             ls
             cd ..
           done
