@@ -1,13 +1,13 @@
 name: Verify package API
 
-# on:
-#   pull_request:
-#     # by default, this will run on [opened, synchronize, reopened] events
-#     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-#     # only consider PRs with changes to rust files
-#     paths:
-#       - '**.rs'
-#     # branches: [master]
+on:
+  pull_request:
+    # by default, this will run on [opened, synchronize, reopened] events
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
+    # only consider PRs with changes to rust files
+    paths:
+      - '**.rs'
+    # branches: [master]
 
 on:
   workflow_dispatch:
@@ -93,16 +93,17 @@ jobs:
             cd "$pkg/js"
             echo ">> yarn install && solita"
             yarn install && yarn add -D @metaplex-foundation/solita && yarn api:gen
-            git restore package.json
-            echo "=============================="
+            git restore package.json ../../yarn.lock
+            echo ">> git status"
             git status
-            echo "=============================="
             if [[ $(git diff --stat) != '' ]]; then
+              echo "found differences"
               echo "::set-output name=failed::true"
               break
             else
               echo "::set-output name=failed::false"
             fi
+            echo ">> moving back 2 dirs"
             cd ../..
           done
 
