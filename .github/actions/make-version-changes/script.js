@@ -144,7 +144,7 @@ const updateCratesPackage = (cwdArgs, pkg, semvar) => {
 };
 
 const updateNpmPackage = (cwdArgs, _pkg, semvar) => {
-  wrappedExec('cat ../../package.json');
+  wrappedExec('cat ../../package.json', cwdArgs.join('/'));
 
   console.log(
     'updating js package',
