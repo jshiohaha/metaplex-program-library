@@ -59,7 +59,9 @@ jobs:
                 if (!p[pkgForFile]) p[pkgForFile] = 1
                 return p
               }, {})
-            const result = Array.from(Object.keys(uniqueFilesObj))
+            let result = Array.from(Object.keys(uniqueFilesObj))
+            console.log("result: ", result)
+            result = `('${result.join("','")}')`
             console.log("result: ", result)
             return result
 
