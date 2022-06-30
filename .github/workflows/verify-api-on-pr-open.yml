@@ -75,7 +75,8 @@ jobs:
         # todo: does this work?
         # install rust?
         run: |
-          for pkg in (${{ needs.get-changes-scope.outputs.packages }}); do
+          pkgs=(${{ needs.get-changes-scope.outputs.packages }})
+          for pkg in "${pkgs[@]}"; do
             echo "$pkg"
           done
 
