@@ -18,22 +18,24 @@ runs:
       with:
         ref: ${{ inputs.branch }}
 
-    # # cache and install cargo release
-    # - uses: actions/cache@v2
-    #   name: Cache Cargo Release
-    #   id: cache-cargo-release
-    #   with:
-    #     path: |
-    #       ~/.cargo/bin/cargo-release
-    #     key: cargo-release-${{ runner.os }}
+    # cache and install cargo release
+    - uses: actions/cache@v2
+      name: Cache Cargo Release
+      id: cache-cargo-release
+      with:
+        path: |
+          ~/.cargo/bin/cargo-release
+        key: cargo-release-${{ runner.os }}
 
-    # - name: Install Cargo Release
-    #   if: steps.cache-cargo-release.outputs.cache-hit != 'true'
-    #   shell: bash
-    #   run: |
-    #     cargo install cargo-release
+    - name: Install Cargo Release
+      if: steps.cache-cargo-release.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cargo install cargo-release
 
     - name: Install dependency packages for script
+      # we don't commit *.lock files, so we don't need to require immutable installs. if this isn't set to false,
+      # we will get an error like `lockfile would have been modified by this install, which is explicitly forbidden.`
       run: |
         YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install && yarn add @iarna/toml
       shell: bash
