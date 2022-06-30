@@ -38,6 +38,10 @@ const fetchAllChangedFiles = async (
 
   let result = Array.from(files);
   if (include) {
+    // it's possible exclude is a stringified arr
+    if (typeof include === 'string') {
+      include = JSON.parse(include);
+    }
     result = result.filter((f) => {
       return include.reduce((prev, path) => {
         return prev && f.includes(path);
@@ -46,6 +50,11 @@ const fetchAllChangedFiles = async (
   }
 
   if (exclude) {
+    // it's possible exclude is a stringified arr
+    if (typeof exclude === 'string') {
+      exclude = JSON.parse(exclude);
+    }
+
     result = result.filter((f) => {
       return exclude.reduce((prev, path) => {
         return prev && !f.includes(path);

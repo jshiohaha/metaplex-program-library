@@ -25,7 +25,7 @@ runs:
       with:
         script: |
           const script = require('.github/actions/list-changed-files/script.js')
-          await script({github, context, core}, ${{ inputs.pull-number }}, ${{ inputs.include }}, ${{ inputs.exclude }})
+          await script({github, context, core}, ${{ inputs.pull-number }}, '${{ inputs.include }}', '${{ inputs.exclude }}')
 
     - name: Set changed-files from PR
       id: set-changed-files

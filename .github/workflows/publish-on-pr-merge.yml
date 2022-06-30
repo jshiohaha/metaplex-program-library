@@ -1,15 +1,19 @@
 name: Sync versions on PR merge
 
 on:
-  push:
-    branches: [master]
+  # push:
+  #   branches: [master]
 
-  # workflow_dispatch:
-  #   inputs:
-  #     changed-packages:
-  #       description: 'packages'
-  #       required: true
-  #       default: '["candy-machine/js"]'
+  workflow_dispatch:
+    inputs:
+      changed-packages:
+        description: 'packages'
+        required: true
+        default: '["candy-machine/js"]'
+      commit-sha:
+        description: 'commit-sha'
+        required: true
+        default: 'pls input'
 
 permissions:
   id-token: write
@@ -40,14 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # get pr for commit
       - name: Get PR for push event HEAD commit
-        # only fetch PR for commit if pull-number is not specified
-        if: ${{ inputs.pull-number == '' }}
         uses: ./.github/actions/get-pr-for-commit
         id: get-pr-for-commit
         with:
           commit-sha: ${{ inputs.commit-sha }}
+          #  commit-sha: ${{ github.sha }}
 
       - name: List changed files
         uses: ./.github/actions/list-changed-files
@@ -56,7 +58,7 @@ jobs:
           pull-number: ${{ steps.get-pr-for-commit.outputs.pull-number }}
           # pull-number: ${{ github.event.pull_request.number }}
           # only include files which might contain version bumps
-          include: ['package.json', 'Cargo.toml']
+          include: '["package.json", "Cargo.toml"]'
 
       # map fetched changed files to package / lang (list)
       - name: Get scope of changed packages
@@ -86,7 +88,7 @@ jobs:
         uses: ./.github/actions/publish-version-changes
         id: publish-version-changes
         with:
-          # changed-packages: ${{ inputs.changed-packages }}
-          changed-packages: ${{ needs.get-changes-scope.outputs.changed-packages }}
+          changed-packages: ${{ inputs.changed-packages }}
+          # changed-packages: ${{ needs.get-changes-scope.outputs.changed-packages }}
           cargo-token: 'null' # ${{ secrets.CARGO_TOKEN }}
           npm-token: 'null' # ${{ secrets.NPM_TOKEN }}
