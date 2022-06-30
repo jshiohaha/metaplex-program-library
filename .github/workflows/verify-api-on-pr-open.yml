@@ -59,9 +59,7 @@ jobs:
                 if (!p[pkgForFile]) p[pkgForFile] = 1
                 return p
               }, {})
-            let result = Array.from(Object.keys(uniqueFilesObj))
-            console.log("result: ", result)
-            result = `('${result.join("','")}')`
+            let result = Array.from(Object.keys(uniqueFilesObj)).join(" ")
             console.log("result: ", result)
             return result
 
@@ -77,7 +75,7 @@ jobs:
         # todo: does this work?
         # install rust?
         run: |
-          for pkg in ${{ needs.get-changes-scope.outputs.packages }}; do
+          for pkg in (${{ needs.get-changes-scope.outputs.packages }}); do
             echo "$pkg"
           done
 
