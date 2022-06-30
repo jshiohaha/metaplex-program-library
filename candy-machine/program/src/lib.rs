@@ -19,6 +19,7 @@ pub mod candy_machine {
         ctx: Context<InitializeCandyMachine>,
         data: CandyMachineData,
     ) -> Result<()> {
+        // initialize_candy_machine
         handle_initialize_candy_machine(ctx, data)
     }
 
