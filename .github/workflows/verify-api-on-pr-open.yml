@@ -81,34 +81,32 @@ jobs:
         with:
           solana_version: ${{ env.SOLANA_VERSION_STABLE }}
 
-      - name: List changed files in a PR
-        id: something-here
-        # todo: does this work?
-        # install rust?
+      - name: Generate API for modified packages
+        id: generate-package-api
+        # todo
         # pkgs=${{ needs.get-changes-scope.outputs.packages }}
         run: |
           pkgs=${{ inputs.packages }}
           pkgs=(${pkgs//\"})
           for pkg in "${pkgs[@]}"; do
-            echo "cd to $pkg/js"
+            echo ">> changing dir $pkg/js"
             cd "$pkg/js"
-            echo "=============================="
-            yarn install && yarn add -D @metaplex-foundation/solita
-            yarn api:gen
+            echo ">> yarn install && solita"
+            yarn install && yarn add -D @metaplex-foundation/solita && yarn api:gen
             git restore package.json
+            echo "=============================="
             git status
             echo "=============================="
-            echo "cd to root"
+            if [[ $(git diff --stat) != '' ]]; then
+              echo "::set-output name=failed::true"
+              break
+            fi
             cd ../..
-            echo "=============================="
           done
+          echo "::set-output name=failed::false"
 
-  # cd $pkg/js
-  #
-  #
-  # # ignore local package.json changes
-  #
-  # if [[ $(git diff --stat) != '' ]]; then
-  #   # core set failed?
-  #   echo "::set-output name=pull-number::fail"
-  # fi
+      - uses: actions/github-script@v4
+        if: steps.generate-package-api.outputs.failed == 'true'
+        with:
+          script: |
+            core.setFailed("Found differences when generating APIs. See logs for offending package(s).")
