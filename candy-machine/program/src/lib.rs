@@ -16,6 +16,7 @@ pub mod candy_machine {
 
     use super::*;
 
+    // initialize_candy_machine
     pub fn initialize_candy_machine(
         ctx: Context<InitializeCandyMachine>,
         data: CandyMachineData,
