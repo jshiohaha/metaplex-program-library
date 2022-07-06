@@ -48,11 +48,11 @@ jobs:
         with:
           script: |
             const files = ${{ steps.list-changed-files.outputs.changed-files }}
+            const isRustFile = /.*\.rs$/g;
             const uniqueFilesObj = files
-              .filter(f => f.includes('program'))
+              .filter(f => f.includes('program') && isRustFile.test(f))
               .reduce((p, file) => {
                 const pkgForFile = file.split("/")[0];
-                console.log("pkgForFile: ", pkgForFile);
                 if (!p[pkgForFile]) p[pkgForFile] = 1
                 return p
               }, {})
@@ -79,13 +79,10 @@ jobs:
           for pkg in "${pkgs[@]}"; do
             echo ">> changing dir $pkg/js"
             cd "$pkg/js"
-            echo ">> yarn install && solita"
-            yarn install
-            echo ">> install solita"
-            yarn add -D @metaplex-foundation/solita
+            echo ">> setup local pcakage dependencies with yarn"
+            yarn
             echo ">> generete API"
             yarn api:gen
-            git restore package.json ../../yarn.lock
             echo ">> git status"
             git status
             if [[ $(git diff --stat) != '' ]]; then
