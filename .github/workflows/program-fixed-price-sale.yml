@@ -6,10 +6,17 @@ on:
   pull_request:
     branches: [master]
 
+# configuration to enable link to AWS for program artifact upload
+permissions:
+  id-token: write
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION: 1.9.22
   RUST_TOOLCHAIN: stable
+  ANCHOR_CLI_VERSION: 0.22.0
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -31,40 +38,81 @@ jobs:
               - 'fixed-price-sale/**'
             workflow:
               - '.github/workflows/program-fixed-price-sale.yml'
-  build-and-test-fixed-price-sale:
+  # build-and-test-fixed-price-sale:
+  #   needs: changes
+  #   if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true' || needs.changes.outputs.workflow == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     cache_id: program-fixed-price-sale
+
+  #   steps:
+  #     # Setup Deps
+  #     - uses: actions/checkout@v2
+  #     - uses: ./.github/actions/install-linux-build-deps
+  #     - uses: ./.github/actions/install-solana
+  #       with: 
+  #         solana_version: ${{ env.SOLANA_VERSION }}
+  #     - uses: ./.github/actions/install-rust
+  #       with: 
+  #         toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+  #     # Restore Cache from previous build/test
+  #     - uses: actions/cache@v2
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           ./rust/target
+  #         key: ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{ env.RUSTC_HASH }}
+
+  #     # Build deps
+  #     - uses: ./.github/actions/build-token-metadata
+  #     # Run test
+  #     - name: test-fixed-price-sale-program
+  #       id: run_test
+  #       working-directory: ./fixed-price-sale/program
+  #       run: |
+  #         cargo +${{ env.RUST_TOOLCHAIN }} test-bpf -- --test-threads 1
+
+  build-and-upload-binary:
     needs: changes
-    if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true' || needs.changes.outputs.workflow == 'true' }}
+    if: ${{ (needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true') && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     env:
-      cache_id: program-fixed-price-sale
+      cache_id: program-fixed-price-sale-build
 
     steps:
-      # Setup Deps
       - uses: actions/checkout@v2
+
       - uses: ./.github/actions/install-linux-build-deps
       - uses: ./.github/actions/install-solana
-        with: 
+        with:
           solana_version: ${{ env.SOLANA_VERSION }}
       - uses: ./.github/actions/install-rust
-        with: 
+        with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
 
-      # Restore Cache from previous build/test
-      - uses: actions/cache@v2
+      - uses: ./.github/actions/setup-aws-env/
+      - name: Build and upload
+        uses: ./.github/actions/build-and-upload/
+        id: upload-binary-metadata
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            ./rust/target
-          key: ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{ env.RUSTC_HASH }}
+          # based on Cargo.toml package name
+          account-id: ${{ env.BINARY_STORAGE_ACCOUNT_ID }}
+          region: ${{ env.BINARY_STORAGE_REGION }}
+          role: ${{ env.BINARY_STORAGE_ROLE }}
+          bucket: ${{ env.BINARY_STORAGE_BUCKET }}
+          working-dir: ./fixed-price-sale/program
+          program-binary: mpl_fixed_price_sale.so
+          prefix: mpl_fixed_price_sale
 
-      # Build deps
-      - uses: ./.github/actions/build-token-metadata
-      # Run test
-      - name: test-fixed-price-sale-program
-        id: run_test
-        working-directory: ./fixed-price-sale/program
-        run: |
-          cargo +${{ env.RUST_TOOLCHAIN }} test-bpf -- --test-threads 1
+      - name: Set labels as output
+        run: echo "binary url -> ${{ steps.upload-binary-metadata.outputs.url }}"
+        shell: bash
+
+      # set output for step
+
+    # create new job, dependent on build-and-upload-binary
+    # pass reference of binary to gov build
