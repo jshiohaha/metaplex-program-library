@@ -6,11 +6,17 @@ on:
   pull_request:
     branches: [master]
 
+# configuration to enable link to AWS for program artifact upload
+permissions:
+  id-token: write
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
   SOLANA_VERSION_STABLE: 1.9.22
   SOLANA_VERSION_UNSTABLE: 1.10.5
   RUST_TOOLCHAIN: stable
+  ANCHOR_CLI_VERSION: 0.22.0
 
 jobs:
   changes:
@@ -31,16 +37,112 @@ jobs:
             package:
               - 'auction-house/**'
 
-  build-and-test-auction-house-stable:
+  # build-and-test-auction-house-stable:
+  #   needs: changes
+  #   if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     cache_id: program-auction-house
+
+  #   steps:
+  #     # Setup Deps
+  #     - uses: actions/checkout@v2
+  #     - uses: ./.github/actions/install-linux-build-deps
+  #     - uses: ./.github/actions/install-solana
+  #       with:
+  #         solana_version: ${{ env.SOLANA_VERSION_STABLE }}
+  #     - uses: ./.github/actions/install-rust
+  #       with:
+  #         toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+  #     # Restore Cache from previous build/test
+  #     - uses: actions/cache@v2
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           ./rust/target
+  #         key:
+  #           ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{
+  #           env.RUSTC_HASH }}
+
+  #     # Run lint checks
+  #     - uses: ./.github/actions/verify-rust
+  #       with:
+  #         working-directory: ./auction-house/program
+
+  #     # Build deps
+  #     - uses: ./.github/actions/build-token-metadata
+
+  #     # Run test
+  #     - name: test-auction-house-program
+  #       id: run_test
+  #       working-directory: ./auction-house/program
+  #       run: |
+  #         cargo +${{ env.RUST_TOOLCHAIN }} test -- --nocapture --test-threads 1
+  #         cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --version
+  #         cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --bpf-out-dir ../../target/deploy/ -- --nocapture --test-threads 1
+
+  # build-and-test-auction-house-unstable:
+  #   needs: changes
+  #   if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true' }}
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     cache_id: program-auction-house
+
+  #   steps:
+  #     # Setup Deps
+  #     - uses: actions/checkout@v2
+  #     - uses: ./.github/actions/install-linux-build-deps
+  #     - uses: ./.github/actions/install-solana
+  #       with:
+  #         solana_version: ${{ env.SOLANA_VERSION_UNSTABLE }}
+  #     - uses: ./.github/actions/install-rust
+  #       with:
+  #         toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+  #     # Restore Cache from previous build/test
+  #     - uses: actions/cache@v2
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           ./rust/target
+  #         key:
+  #           ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{
+  #           env.RUSTC_HASH }}
+
+  #     # Run lint checks
+  #     - uses: ./.github/actions/verify-rust
+  #       with:
+  #         working-directory: ./auction-house/program
+
+  #     # Build deps
+  #     - uses: ./.github/actions/build-token-metadata
+
+  #     # Run test
+  #     - name: test-auction-house-program
+  #       id: run_test
+  #       working-directory: ./auction-house/program
+  #       run: |
+  #         cargo +${{ env.RUST_TOOLCHAIN }} test -- --nocapture --test-threads 1
+  #         cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --version
+  #         cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --bpf-out-dir ../../target/deploy/ -- --nocapture --test-threads 1
+
+  build-and-upload-binary:
     needs: changes
-    if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true' }}
+    if: ${{ (needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true') && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     env:
-      cache_id: program-auction-house
+      cache_id: program-auction-house-build
 
     steps:
-      # Setup Deps
       - uses: actions/checkout@v2
+
       - uses: ./.github/actions/install-linux-build-deps
       - uses: ./.github/actions/install-solana
         with:
@@ -49,80 +151,25 @@ jobs:
         with:
           toolchain: ${{ env.RUST_TOOLCHAIN }}
 
-      # Restore Cache from previous build/test
-      - uses: actions/cache@v2
+      - uses: ./.github/actions/setup-aws-env/
+      - name: Build and upload
+        uses: ./.github/actions/build-and-upload/
+        id: upload-binary-metadata
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            ./rust/target
-          key:
-            ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{
-            env.RUSTC_HASH }}
+          # based on Cargo.toml package name
+          account-id: ${{ env.BINARY_STORAGE_ACCOUNT_ID }}
+          region: ${{ env.BINARY_STORAGE_REGION }}
+          role: ${{ env.BINARY_STORAGE_ROLE }}
+          bucket: ${{ env.BINARY_STORAGE_BUCKET }}
+          working-dir: ./auction-house/program
+          program-binary: mpl_auction_house.so
+          prefix: mpl_auction_house
 
-      # Run lint checks
-      - uses: ./.github/actions/verify-rust
-        with:
-          working-directory: ./auction-house/program
+      - name: Set labels as output
+        run: echo "binary url -> ${{ steps.upload-binary-metadata.outputs.url }}"
+        shell: bash
 
-      # Build deps
-      - uses: ./.github/actions/build-token-metadata
+      # set output for step
 
-      # Run test
-      - name: test-auction-house-program
-        id: run_test
-        working-directory: ./auction-house/program
-        run: |
-          cargo +${{ env.RUST_TOOLCHAIN }} test -- --nocapture --test-threads 1
-          cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --version
-          cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --bpf-out-dir ../../target/deploy/ -- --nocapture --test-threads 1
-
-  build-and-test-auction-house-unstable:
-    needs: changes
-    if: ${{ needs.changes.outputs.core == 'true' || needs.changes.outputs.package == 'true' }}
-    runs-on: ubuntu-latest
-    env:
-      cache_id: program-auction-house
-
-    steps:
-      # Setup Deps
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/install-linux-build-deps
-      - uses: ./.github/actions/install-solana
-        with:
-          solana_version: ${{ env.SOLANA_VERSION_UNSTABLE }}
-      - uses: ./.github/actions/install-rust
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
-
-      # Restore Cache from previous build/test
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            ./rust/target
-          key:
-            ${{ env.cache_id }}-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{
-            env.RUSTC_HASH }}
-
-      # Run lint checks
-      - uses: ./.github/actions/verify-rust
-        with:
-          working-directory: ./auction-house/program
-
-      # Build deps
-      - uses: ./.github/actions/build-token-metadata
-
-      # Run test
-      - name: test-auction-house-program
-        id: run_test
-        working-directory: ./auction-house/program
-        run: |
-          cargo +${{ env.RUST_TOOLCHAIN }} test -- --nocapture --test-threads 1
-          cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --version
-          cargo +${{ env.RUST_TOOLCHAIN }} test-bpf --bpf-out-dir ../../target/deploy/ -- --nocapture --test-threads 1
+    # create new job, dependent on build-and-upload-binary
+    # pass reference of binary to gov build
