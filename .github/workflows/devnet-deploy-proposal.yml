@@ -1,0 +1,51 @@
+name: Deploy proposal test
+
+on:
+  workflow_dispatch:
+    inputs:
+      program:
+        description: 'Program to deploy'
+        required: true
+        default: ''
+
+env:
+  NODE_VERSION: 17.0.1
+  ANCHOR_VERSION: 0.22.0
+  SOLANA_VERSION_STABLE: 1.9.22
+  RUST_TOOLCHAIN: stable
+
+jobs:
+  dump-context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+  deploy-with-proposal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/install-linux-build-deps
+      - uses: ./.github/actions/install-solana
+        with:
+          solana_version: ${{ env.SOLANA_VERSION_STABLE }}
+      - uses: ./.github/actions/install-rust
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - name: Deploy with proposal
+        uses: ./.github/actions/deploy-with-gov-proposal
+        id: deploy-with-gov-proposal
+        with:
+          program: ${{ inputs.program }}
+          program-id: 7nfZGjy2LXjh9fcW7dQEGrpy2vcRW2Hkjm7vfLXW4vtW
+          keypair: ${{ secrets.DEPLOY_KEYPAIR }}
+          network: https://devnet.genesysgo.net/
+          governance-program-id: GovER5Lthms3bLBqWub97yVrMmEogzX7xNjdXpPPCVZw
+          governance: VpEowyq9xcy3iwVa8aoroRXi4RNdU19vHggFZJJi7v9
+          name: Deploy prog ${{ github.ref_name }}
+          description: https://github.com/jshiohaha/metaplex-program-library/tree/${{ github.ref_name }}

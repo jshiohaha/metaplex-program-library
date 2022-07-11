@@ -34,4 +34,5 @@ members = [
   "token-metadata/program",
   "auction-house/program",
   "fixed-price-sale/program",
+  "prog/program"
 ]
