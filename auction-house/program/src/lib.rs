@@ -41,6 +41,7 @@ anchor_lang::declare_id!("hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk");
 pub mod auction_house {
     use super::*;
 
+    // withdraw_from_fee
     /// Withdraw `amount` from the Auction House Fee Account to a provided destination account.
     pub fn withdraw_from_fee<'info>(
         ctx: Context<'_, '_, '_, 'info, WithdrawFromFee<'info>>,
