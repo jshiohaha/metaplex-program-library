@@ -67,7 +67,17 @@ const tryPublishNpmPackage = async (npmToken, cwdArgs) => {
     wrappedExec(`echo "//registry.npmjs.org/:_authToken=${npmToken}" > ~/.npmrc`, currentDir);
     wrappedExec(`npm publish`, currentDir);
 
-    addTag(formatNpmTag(packageName, localPackageVersion));
+    const npmTagName = formatNpmTag(packageName, localPackageVersion);
+
+    // if git tag DNE, add it; if it already exists, it's from the npm (pre|post)publish flow.
+    if (execSync(`git tag -l ${npmTagName}`).toString() === '') {
+      addTag(npmTagName);
+    } else {
+      // npm publish post-process is defined in each program's package.json. it will
+      // try to call git push, which will fail because master is push protected. in this case,
+      // we still want to try and only push updated tags.
+      wrappedExec('git push origin --tags');
+    }
   } else {
     console.log('no publish needed');
   }
