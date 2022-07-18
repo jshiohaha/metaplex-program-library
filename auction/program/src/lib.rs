@@ -7,6 +7,8 @@ pub mod errors;
 pub mod instruction;
 pub mod processor;
 
+// gm
+
 /// Prefix used in PDA derivations to avoid collisions with other programs.
 pub const PREFIX: &str = "auction";
 pub const EXTENDED: &str = "extended";
