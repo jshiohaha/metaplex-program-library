@@ -26,7 +26,6 @@ pub const CANDY_MACHINE_V2_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
     0x21, 0x51, 0xc0, 0x96, 0xc0, 0x6b, 0x5c, 0x2a, 0x82, 0xf0, 0x86, 0xa5, 0x03, 0xe8, 0x2c, 0x34,
 ]);
 
-
 fn verify_candy(candy_machine_program_account: &Pubkey) -> Result<()> {
     if candy_machine_program_account != &CANDY_MACHINE_V1_PROGRAM_ID
         && candy_machine_program_account != &CANDY_MACHINE_V2_PROGRAM_ID
@@ -51,8 +50,7 @@ fn verify_temporal<'a>(
         // signing for this transaction
         || temporal.key() == claimant_secret
         // the creator decided not to use a temporal signer
-        || distributor.temporal == Pubkey::default()
-        ,
+        || distributor.temporal == Pubkey::default(),
         GumdropError::TemporalMismatch
     );
 
@@ -67,8 +65,7 @@ fn verify_claim_bump<'a>(
     distributor: &Account<'a, MerkleDistributor>,
 ) -> Result<()> {
     require!(
-        claim_prefix == CLAIM_COUNT
-        || claim_prefix == CLAIM_STATUS,
+        claim_prefix == CLAIM_COUNT || claim_prefix == CLAIM_STATUS,
         GumdropError::InvalidClaimBump,
     );
 
@@ -81,8 +78,7 @@ fn verify_claim_bump<'a>(
         &ID,
     );
     require!(
-        claim_account_key == *claim_account.key
-        && claim_account_bump == claim_bump,
+        claim_account_key == *claim_account.key && claim_account_bump == claim_bump,
         GumdropError::InvalidClaimBump,
     );
 
@@ -120,7 +116,8 @@ fn get_or_create_claim_count<'a>(
                 claim_count.key,
                 lamports,
                 space as u64,
-                &ID),
+                &ID,
+            ),
             &[
                 payer.to_account_info().clone(),
                 claim_count.clone(),
@@ -132,12 +129,13 @@ fn get_or_create_claim_count<'a>(
         let mut data = claim_count.try_borrow_mut_data()?;
         let dst: &mut [u8] = &mut data;
         let mut cursor = std::io::Cursor::new(dst);
-        cursor.write_all(&<ClaimCount as anchor_lang::Discriminator>::discriminator()).unwrap();
+        cursor
+            .write_all(&<ClaimCount as anchor_lang::Discriminator>::discriminator())
+            .unwrap();
     }
 
     // anchor_lang::Account::try_from(&claim_count)?;
-    let mut pa: Account<ClaimCount> =
-        Account::try_from(&claim_count)?;
+    let mut pa: Account<ClaimCount> = Account::try_from(&claim_count)?;
 
     if create_claim_state {
         verify_temporal(distributor, temporal, claimant_secret)?;
@@ -183,7 +181,10 @@ pub mod gumdrop {
         let distributor = &ctx.accounts.distributor;
 
         // should be implicit in the PDA
-        require!(distributor.base == ctx.accounts.base.key(),  GumdropError::Unauthorized);
+        require!(
+            distributor.base == ctx.accounts.base.key(),
+            GumdropError::Unauthorized
+        );
 
         let seeds = [
             b"MerkleDistributor".as_ref(),
@@ -200,7 +201,7 @@ pub mod gumdrop {
                     authority: ctx.accounts.distributor.to_account_info(),
                 },
             )
-                .with_signer(&[&seeds[..]]),
+            .with_signer(&[&seeds[..]]),
             ctx.accounts.from.amount,
         )?;
 
@@ -213,7 +214,7 @@ pub mod gumdrop {
                     authority: ctx.accounts.distributor.to_account_info(),
                 },
             )
-                .with_signer(&[&seeds[..]]),
+            .with_signer(&[&seeds[..]]),
         )?;
 
         Ok(())
@@ -231,7 +232,10 @@ pub mod gumdrop {
         let distributor = &ctx.accounts.distributor;
 
         // should be implicit in the PDA
-        require!(distributor.base == ctx.accounts.base.key(),  GumdropError::Unauthorized);
+        require!(
+            distributor.base == ctx.accounts.base.key(),
+            GumdropError::Unauthorized
+        );
 
         let wallet_seeds = [
             b"Wallet".as_ref(),
@@ -245,9 +249,7 @@ pub mod gumdrop {
             let candy_machine_program_info = &ctx.remaining_accounts[1];
             verify_candy(candy_machine_program_info.key)?;
             // TODO. global::update_authority instruction...
-            let mut data = vec![
-                0x20, 0x2e, 0x40, 0x1c, 0x95, 0x4b, 0xf3, 0x58,
-            ];
+            let mut data = vec![0x20, 0x2e, 0x40, 0x1c, 0x95, 0x4b, 0xf3, 0x58];
 
             data.push(0x01);
             data.extend_from_slice(&ctx.accounts.receiver.key.to_bytes());
@@ -304,8 +306,7 @@ pub mod gumdrop {
         // resource is unique per gumdrop, if this is messed up, they shouldn't be able to claim
         // extra resources.
         require!(
-            claim_prefix.as_slice() == CLAIM_COUNT
-            || claim_prefix.as_slice() == CLAIM_STATUS,
+            claim_prefix.as_slice() == CLAIM_COUNT || claim_prefix.as_slice() == CLAIM_STATUS,
             GumdropError::InvalidProof,
         );
 
@@ -372,7 +373,7 @@ pub mod gumdrop {
         require!(
             // This check is redudant, we should not be able to initialize a claim status account at the same key.
             !claim_status.is_claimed && claim_status.claimed_at == 0,
-             GumdropError::DropAlreadyClaimed
+            GumdropError::DropAlreadyClaimed
         );
 
         let distributor = &ctx.accounts.distributor;
@@ -396,7 +397,7 @@ pub mod gumdrop {
         ]);
         require!(
             merkle_proof::verify(proof, distributor.root, node.0),
-             GumdropError::InvalidProof
+            GumdropError::InvalidProof
         );
 
         // Mark it claimed and send the tokens.
@@ -422,7 +423,7 @@ pub mod gumdrop {
                     authority: ctx.accounts.distributor.to_account_info(),
                 },
             )
-                .with_signer(&[&seeds[..]]),
+            .with_signer(&[&seeds[..]]),
             amount,
         )?;
 
@@ -457,7 +458,7 @@ pub mod gumdrop {
         )?;
         require!(
             *claim_count.to_account_info().owner == ID,
-             GumdropError::OwnerMismatch
+            GumdropError::OwnerMismatch
         );
 
         // TODO: this is a bit weird but we verify elsewhere that the candy_machine_config is
@@ -472,20 +473,17 @@ pub mod gumdrop {
         ]);
         require!(
             merkle_proof::verify(proof, distributor.root, node.0),
-             GumdropError::InvalidProof
+            GumdropError::InvalidProof
         );
 
         // This user is whitelisted to mint at most `amount` NFTs from the candy machine
-        require!(
-            claim_count.count < amount,
-             GumdropError::DropAlreadyClaimed
-        );
+        require!(claim_count.count < amount, GumdropError::DropAlreadyClaimed);
 
         // Mark it claimed
-        claim_count.count = claim_count.count
+        claim_count.count = claim_count
+            .count
             .checked_add(1)
             .ok_or(GumdropError::NumericalOverflow)?;
-
 
         issue_mint_nft(
             &distributor,
@@ -509,7 +507,8 @@ pub mod gumdrop {
 
         // reserialize claim_count
         {
-            let mut claim_count_data: &mut [u8] = &mut ctx.accounts.claim_count.try_borrow_mut_data()?;
+            let mut claim_count_data: &mut [u8] =
+                &mut ctx.accounts.claim_count.try_borrow_mut_data()?;
             claim_count.try_serialize(&mut claim_count_data)?;
         }
 
@@ -539,7 +538,7 @@ pub mod gumdrop {
         )?;
         require!(
             *claim_count.to_account_info().owner == ID,
-             GumdropError::OwnerMismatch
+            GumdropError::OwnerMismatch
         );
 
         // TODO: master_edition or something else? should we has the edition here also?
@@ -553,17 +552,15 @@ pub mod gumdrop {
         ]);
         require!(
             merkle_proof::verify(proof, distributor.root, node.0),
-             GumdropError::InvalidProof
+            GumdropError::InvalidProof
         );
 
         // This user is whitelisted to mint at most `amount` NFTs from the candy machine
-        require!(
-            claim_count.count < amount,
-            GumdropError::DropAlreadyClaimed
-        );
+        require!(claim_count.count < amount, GumdropError::DropAlreadyClaimed);
 
         // Mark it claimed
-        claim_count.count = claim_count.count
+        claim_count.count = claim_count
+            .count
             .checked_add(1)
             .ok_or(GumdropError::NumericalOverflow)?;
 
@@ -580,7 +577,10 @@ pub mod gumdrop {
             ctx.accounts.metadata_master_edition.clone(),
             ctx.accounts.metadata_new_mint.clone(),
             ctx.accounts.metadata_edition_mark_pda.clone(),
-            ctx.accounts.metadata_new_mint_authority.to_account_info().clone(),
+            ctx.accounts
+                .metadata_new_mint_authority
+                .to_account_info()
+                .clone(),
             ctx.accounts.payer.to_account_info().clone(),
             ctx.accounts.distributor.to_account_info().clone(),
             ctx.accounts.metadata_master_token_account.clone(),
@@ -612,18 +612,18 @@ pub mod gumdrop {
 
         // reserialize claim_count
         {
-            let mut claim_count_data: &mut [u8] = &mut ctx.accounts.claim_count.try_borrow_mut_data()?;
+            let mut claim_count_data: &mut [u8] =
+                &mut ctx.accounts.claim_count.try_borrow_mut_data()?;
             claim_count.try_serialize(&mut claim_count_data)?;
         }
 
         Ok(())
     }
 
-
     pub fn claim_candy_proven<'info>(
         ctx: Context<'_, '_, '_, 'info, ClaimCandyProven<'info>>,
         wallet_bump: u8,
-        _claim_bump: u8,   // proof is not created
+        _claim_bump: u8, // proof is not created
         _index: u64,
     ) -> Result<()> {
         let claim_proof = &mut ctx.accounts.claim_proof;
@@ -646,7 +646,8 @@ pub mod gumdrop {
         );
 
         // Mark it claimed
-        claim_proof.count = claim_proof.count
+        claim_proof.count = claim_proof
+            .count
             .checked_add(1)
             .ok_or(GumdropError::NumericalOverflow)?;
 
@@ -732,9 +733,8 @@ fn issue_mint_nft<'info>(
         let mut candy_machine_data: &[u8] = &candy_machine.try_borrow_data()?;
         verify_candy(candy_machine_program.key)?;
         let candy_machine = CandyMachine::try_deserialize(&mut candy_machine_data)?;
-        let required_rent =
-            rent.minimum_balance(mpl_token_metadata::state::MAX_METADATA_LEN)
-                + rent.minimum_balance(mpl_token_metadata::state::MAX_MASTER_EDITION_LEN);
+        let required_rent = rent.minimum_balance(mpl_token_metadata::state::MAX_METADATA_LEN)
+            + rent.minimum_balance(mpl_token_metadata::state::MAX_MASTER_EDITION_LEN);
 
         if candy_machine.token_mint.is_some() {
             required_lamports = required_rent;
@@ -742,10 +742,7 @@ fn issue_mint_nft<'info>(
             // checked by candy machine
             let token_account_info = &claim_remaining_accounts[0];
             let transfer_authority_info = &claim_remaining_accounts[1];
-            remaining_accounts = vec![
-                token_account_info.clone(),
-                transfer_authority_info.clone(),
-            ];
+            remaining_accounts = vec![token_account_info.clone(), transfer_authority_info.clone()];
         } else {
             required_lamports = candy_machine.data.price + required_rent;
             remaining_accounts = vec![];
@@ -756,11 +753,7 @@ fn issue_mint_nft<'info>(
         required_lamports,
     );
     invoke(
-        &system_instruction::transfer(
-            payer.key,
-            distributor_wallet.key,
-            required_lamports,
-        ),
+        &system_instruction::transfer(payer.key, distributor_wallet.key, required_lamports),
         &[
             payer.to_account_info().clone(),
             distributor_wallet.clone(),
