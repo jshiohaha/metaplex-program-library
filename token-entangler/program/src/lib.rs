@@ -387,7 +387,7 @@ pub struct Swap<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-pub const ENTANGLED_PAIR_SIZE: usize = 8 +// key 
+pub const ENTANGLED_PAIR_SIZE: usize = 8 +// key
 32 + // treasury mint
 32 + // mint a
 32 + // mint b
