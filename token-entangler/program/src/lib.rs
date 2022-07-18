@@ -13,6 +13,8 @@ use anchor_spl::{
 
 anchor_lang::declare_id!("qntmGodpGkrM42mN68VCZHXnKqDCT8rdY23wFcXCLPd");
 
+// gm
+
 const PREFIX: &str = "token_entangler";
 const ESCROW: &str = "escrow";
 const A_NAME: &str = "A";

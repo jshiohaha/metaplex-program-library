@@ -11,6 +11,7 @@ pub use state::*;
 pub use utils::*;
 declare_id!("cndy3Z4yapfJBmL3ShUp5exZKqR3z33thTzeNMm2gRZ");
 
+// gma
 #[program]
 pub mod candy_machine {
 

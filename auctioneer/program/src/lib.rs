@@ -18,6 +18,7 @@ use solana_program::clock::UnixTimestamp;
 
 declare_id!("neer8g6yJq2mQM6KbnViEDAD4gr3gRZyMMf4F2p3MEh");
 
+// gm
 #[program]
 pub mod auctioneer {
     use super::*;

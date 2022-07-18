@@ -37,6 +37,7 @@ use spl_token::instruction::revoke;
 
 anchor_lang::declare_id!("hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk");
 
+// gm
 #[program]
 pub mod auction_house {
     use super::*;

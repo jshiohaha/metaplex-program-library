@@ -17,6 +17,8 @@ use anchor_spl::{
     token::{Mint, Token, TokenAccount},
 };
 
+// gm
+
 declare_id!("SaLeTjyUa5wXHnGuewUSyJ5JWZaHwz3TxqUntCE9czo");
 
 #[program]

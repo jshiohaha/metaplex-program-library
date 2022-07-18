@@ -15,6 +15,8 @@ pub const PROGRAM_VERSION: u8 = 1;
 #[cfg(not(feature = "no-entrypoint"))]
 pub mod entrypoint;
 
+// gm
+
 // Export current sdk types for downstream users building with a different sdk version
 pub use solana_program;
 use solana_program::pubkey::Pubkey;
