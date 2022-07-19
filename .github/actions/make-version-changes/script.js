@@ -2,6 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+const MPL_OWNER = 'metaplex-foundation';
+const MPL_REPO = 'metaplex-program-library';
+const MPL_FULL_NAME = `${MPL_OWNER}/${MPL_REPO}`;
+
 // todo: move somewhere, like a separate config/constants file.
 const MPL_PROGRAM_CONFIG = {
   'auction-house': {
@@ -157,8 +161,15 @@ const updateNpmPackage = (cwdArgs, _pkg, semvar) => {
  * @param {packages} arr List of packages to process in the form <pkg-name>/<sub-dir>
  * @param {versioning} arr List of version commands in the form semvar:pkg:type where type = `program|js`
  * @return void
+ *
+ * const source_repo = {
+ *    full_name: '${{ inputs.repository }}',
+ *    pr_branch: '${{ inputs.branch }}',
+ *    commit_sha: '${{ inputs.commit-sha }}'
+ *    pull_number: '${{ inputs.pull-number }}'
+ * }
  */
-module.exports = async ({ github, context, core, glob, io }, packages, versioning) => {
+module.exports = async ({ github, context, core, glob, io }, source_repo, packages, versioning) => {
   const base = process.env.GITHUB_ACTION_PATH; // alt: path.join(__dirname);
   const splitBase = base.split('/');
   const parentDirsToHome = 4; // ~/<home>/./.github/actions/<name>
@@ -172,6 +183,15 @@ module.exports = async ({ github, context, core, glob, io }, packages, versionin
   // setup git user config
   wrappedExec('git config user.name github-actions[bot]');
   wrappedExec('git config user.email github-actions[bot]@users.noreply.github.com');
+
+  // we can't push direclty to a fork, so we need to open a PR
+  let newBranch;
+  if (isPrFromFork(source_repo.full_name)) {
+    // random 8 alphanumeric postfix
+    newBranch = `${source_repo.pr_branch}-${(Math.random() + 1).toString(36).substr(2, 10)}`;
+    // if fork, create new branch and register with upstream
+    wrappedExec(`git checkout -b ${newBranch} && git push -u origin ${newBranch}`);
+  }
 
   // versioning = [semvar:pkg:type]
   for (const version of versioning) {
@@ -207,9 +227,9 @@ module.exports = async ({ github, context, core, glob, io }, packages, versionin
         cwdArgs.push(type);
 
         if (isCratesPackage(type)) {
-          await updateCratesPackage(io, cwdArgs, name, semvar);
+          await updateCratesPackage(io, source_repo, cwdArgs, name, semvar);
         } else if (isNpmPackage(type)) {
-          updateNpmPackage(cwdArgs, name, semvar);
+          updateNpmPackage(source_repo, cwdArgs, name, semvar);
         } else continue;
       } else {
         console.log(`no update required for package = ${name} of type = ${type}`);
@@ -221,4 +241,34 @@ module.exports = async ({ github, context, core, glob, io }, packages, versionin
       cwdArgs.pop();
     }
   }
+
+  // if fork, create pull request and create comment on soure pull request
+  if (isPrFromFork(source_repo.full_name)) {
+    const [owner, repo] = source_repo.full_name.split('/');
+
+    // pass in the owner + repo + base (derive head) + issue number (PR)
+    const { data: pullRequest } = await github.rest.pulls.create({
+      owner,
+      repo,
+      head: newBranch, // from
+      base: source_repo.pr_branch, // to
+      title: `versioning: ${newBranch} to ${source_repo.pr_branch}`,
+      body: `Version bump requested on https://github.com/${MPL_FULL_NAME}/pull/${source_repo.pull_number}`,
+    });
+
+    console.log('source_repo: ', source_repo);
+    console.log('pullRequest: ', pullRequest);
+
+    // https://github.com/${source_repo}/pull/${issue_number}
+    const { data: commentResult } = github.rest.issues.createComment({
+      owner: MPL_OWNER,
+      repo: MPL_REPO,
+      issue_number: source_repo.pull_number,
+      body: `Created a PR with version changes https://github.com/${source_repo.full_name}/pull/${pullRequest.number}. Please merge to so changes are reflected in this PR.`,
+    });
+
+    console.log('commentResult: ', commentResult);
+  }
 };
+
+const isPrFromFork = (fullRepoName) => fullRepoName !== MPL_FULL_NAME;

@@ -10,6 +10,13 @@ inputs:
   branch:
     description: 'Branch to checkout'
     required: true
+  repository:
+    description: 'Branch to checkout'
+    required: true
+  pull-number:
+    description:
+      'Pull request numeric ID. If this is empty, expect a commit-sha with an associated PR.'
+    required: true
 
 runs:
   using: 'composite'
@@ -17,6 +24,9 @@ runs:
     - uses: actions/checkout@v3
       with:
         ref: ${{ inputs.branch }}
+        # todo: does this work for forks?
+        # github.event.pull_request.head.repo.full_name
+        repository: ${{ inputs.repository }}
 
     # cache and install cargo release
     - uses: actions/cache@v2
@@ -51,6 +61,13 @@ runs:
     - name: Make version changes
       uses: actions/github-script@v4
       with:
+        # todo: make sure these work
         script: |
           const script = require('.github/actions/make-version-changes/script.js')
-          await script({github, context, core, glob, io}, ${{ inputs.changed-packages }}, ${{ inputs.versioning }})
+          const source_repo = {
+            full_name: '${{ inputs.repository }}',
+            pr_branch: '${{ inputs.branch }}',
+            commit_sha: '${{ inputs.commit-sha }}'
+            pull_number: '${{ inputs.pull-number }}'
+          }
+          await script({github, context, core, glob, io}, source_repo, ${{ inputs.changed-packages }}, ${{ inputs.versioning }})
