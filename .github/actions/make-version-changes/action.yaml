@@ -7,8 +7,21 @@ inputs:
   versioning:
     description: 'Versioning command(s)'
     required: true
-  branch:
-    description: 'Branch to checkout'
+  from-branch:
+    description: 'From branch'
+    required: true
+  from-repository:
+    description: 'From full repo name'
+    required: true
+  to-branch:
+    description: 'To branch'
+    required: true
+  to-repository:
+    description: 'To full repo name'
+    required: true
+  pull-number:
+    description:
+      'Pull request numeric ID. If this is empty, expect a commit-sha with an associated PR.'
     required: true
 
 runs:
@@ -16,41 +29,52 @@ runs:
   steps:
     - uses: actions/checkout@v3
       with:
-        ref: ${{ inputs.branch }}
+        ref: ${{ inputs.from-branch }}
+        # todo: does this work for forks?
+        # github.event.pull_request.head.repo.full_name
+        repository: ${{ inputs.from-repository }}
 
-    # cache and install cargo release
-    - uses: actions/cache@v2
-      name: Cache Cargo Release
-      id: cache-cargo-release
-      with:
-        path: |
-          ~/.cargo/bin/cargo-release
-        key: cargo-release-${{ runner.os }}
+    # # cache and install cargo release
+    # - uses: actions/cache@v2
+    #   name: Cache Cargo Release
+    #   id: cache-cargo-release
+    #   with:
+    #     path: |
+    #       ~/.cargo/bin/cargo-release
+    #     key: cargo-release-${{ runner.os }}
 
-    - name: Install Cargo Release
-      if: steps.cache-cargo-release.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        cargo install cargo-release
+    # - name: Install Cargo Release
+    #   if: steps.cache-cargo-release.outputs.cache-hit != 'true'
+    #   shell: bash
+    #   run: |
+    #     cargo install cargo-release
 
-    # cache and install shank cli
-    - uses: actions/cache@v2
-      name: Cache Shank CLI
-      id: cache-shank-cli
-      with:
-        path: |
-          ~/.cargo/bin/shank
-        key: shank-cli-${{ runner.os }}
+    # # cache and install shank cli
+    # - uses: actions/cache@v2
+    #   name: Cache Shank CLI
+    #   id: cache-shank-cli
+    #   with:
+    #     path: |
+    #       ~/.cargo/bin/shank
+    #     key: shank-cli-${{ runner.os }}
 
-    - name: Install Cargo Shank
-      if: steps.cache-shank-cli.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        cargo install shank-cli
+    # - name: Install Cargo Shank
+    #   if: steps.cache-shank-cli.outputs.cache-hit != 'true'
+    #   shell: bash
+    #   run: |
+    #     cargo install shank-cli
 
     - name: Make version changes
       uses: actions/github-script@v4
       with:
+        # todo: make sure these work
         script: |
           const script = require('.github/actions/make-version-changes/script.js')
-          await script({github, context, core, glob, io}, ${{ inputs.changed-packages }}, ${{ inputs.versioning }})
+          const source_repo = {
+            from_repository: '${{ inputs.from-repository }}',
+            from_branch: '${{ inputs.from-branch }}',
+            to_repository: '${{ inputs.to-repository }}',
+            to_branch: '${{ inputs.to-branch }}',
+            pull_number: '${{ inputs.pull-number }}'
+          }
+          await script({github, context, core, glob, io, source_repo}, ${{ inputs.changed-packages }}, ${{ inputs.versioning }})
