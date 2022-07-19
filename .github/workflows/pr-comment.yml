@@ -8,6 +8,8 @@ permissions:
   id-token: write
   contents: write
   packages: write
+  issues: write # make comment
+  pull-requests: write # open PR
 
 env:
   NODE_VERSION: 17.0.1
@@ -27,8 +29,9 @@ jobs:
 
   get-changes-scope:
     if:
-      contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.review.author_association) == true &&
-      contains(fromJson('["approved", "commented"]'), github.event.review.state) == true
+      contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'),
+      github.event.review.author_association) == true && contains(fromJson('["approved",
+      "commented"]'), github.event.review.state) == true
     runs-on: ubuntu-latest
     outputs:
       changed-packages: ${{ steps.get-changed-package-scope.outputs.result }}
@@ -62,8 +65,9 @@ jobs:
 
   get-version-scope:
     if:
-      contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.review.author_association) == true &&
-      contains(fromJson('["approved", "commented"]'), github.event.review.state) == true
+      contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'),
+      github.event.review.author_association) == true && contains(fromJson('["approved",
+      "commented"]'), github.event.review.state) == true
     runs-on: ubuntu-latest
     outputs:
       versioning: ${{ steps.parse-version-info.outputs.versioning }}
@@ -82,14 +86,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/install-linux-build-deps
-      - uses: ./.github/actions/install-solana
-        with:
-          solana_version: ${{ env.SOLANA_VERSION_STABLE }}
-      - uses: ./.github/actions/install-rust
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
-      - uses: ./.github/actions/install-anchor/
+      # - uses: ./.github/actions/install-linux-build-deps
+      # - uses: ./.github/actions/install-solana
+      #   with:
+      #     solana_version: ${{ env.SOLANA_VERSION_STABLE }}
+      # - uses: ./.github/actions/install-rust
+      #   with:
+      #     toolchain: ${{ env.RUST_TOOLCHAIN }}
+      # - uses: ./.github/actions/install-anchor/
 
       - name: Make version changes
         uses: ./.github/actions/make-version-changes
@@ -98,3 +102,5 @@ jobs:
           changed-packages: ${{ needs.get-changes-scope.outputs.changed-packages }}
           versioning: ${{ needs.get-version-scope.outputs.versioning }}
           branch: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          pull-number: ${{ github.event.pull_request.number }}
