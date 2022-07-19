@@ -71,7 +71,7 @@ const wrappedExec = (cmd, cwd) => {
   execSync(cmd, args);
 };
 
-const isPrFromFork = (head, base) => head !== base;
+const isPrFromFork = (head, base) => true; // head !== base;
 
 const packageUsesAnchor = (pkg) => {
   const result = MPL_PROGRAM_CONFIG[pkg]['uses_anchor'];
@@ -166,7 +166,11 @@ const updateNpmPackage = (cwdArgs, _pkg, semvar) => {
  * @return void
  *
  */
-module.exports = async ({ github, context, core, glob, io, change_config }, packages, versioning) => {
+module.exports = async (
+  { github, context, core, glob, io, change_config },
+  packages,
+  versioning,
+) => {
   console.log('change_config: ', change_config);
 
   const base = process.env.GITHUB_ACTION_PATH; // alt: path.join(__dirname);
