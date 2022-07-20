@@ -14,6 +14,8 @@ declare_id!("cndy3Z4yapfJBmL3ShUp5exZKqR3z33thTzeNMm2gRZ");
 #[program]
 pub mod candy_machine {
 
+    // candy_machine
+
     use super::*;
 
     pub fn initialize_candy_machine(
