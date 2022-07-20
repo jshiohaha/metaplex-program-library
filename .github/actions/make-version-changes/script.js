@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const toml = require('@iarna/toml');
+
+const CONTRACT_VERSION_FIELD = 'contractVersion';
 
 // todo: move somewhere, like a separate config/constants file.
 const MPL_PROGRAM_CONFIG = {
@@ -91,6 +94,44 @@ const isNpmPackage = (actual) => isPackageType(actual, 'js');
 const parseVersioningCommand = (cmd) => cmd.split(':');
 const shouldUpdate = (actual, target) => target === '*' || target === actual;
 
+const getCrateInfo = (cwd) => {
+  const cargoPath = `${cwd}/Cargo.toml`;
+  let tomlObj = toml.parse(fs.readFileSync(cargoPath, 'utf-8'));
+  if (!tomlObj.package) throw new Error('No package tag defined in Cargo.toml');
+
+  return {
+    name: tomlObj.package.name,
+    version: tomlObj.package.version,
+  };
+};
+
+const updatePackageLibContractVersion = (cwdArgs) => {
+  const currentDir = cwdArgs.join('/');
+  const crateInfo = getCrateInfo(currentDir);
+  console.log(`Found crate info: ${crateInfo.name} is at version ${crateInfo.version}`);
+
+  const packageJsDir = [...cwdArgs.slice(0, cwdArgs.length - 1), 'js'].join('/');
+  if (!fs.existsSync(packageJsDir)) {
+    console.log(
+      `JS directory (${packageJsDir}) does not exist - skipping contractVersion update...`,
+    );
+    return;
+  }
+
+  const packageJsonPath = `${packageJsDir}/package.json`;
+  let packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+  if (!packageJson[CONTRACT_VERSION_FIELD]) {
+    console.log(
+      `No '${CONTRACT_VERSION_FIELD}' field in found in ${packageJsonPath} - skipping contractVersion update...`,
+    );
+    return;
+  }
+
+  // update and serialize contractVersion field update in package.json
+  packageJson[CONTRACT_VERSION_FIELD] = crateInfo.version;
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+};
+
 const updateCratesPackage = async (io, cwdArgs, pkg, semvar) => {
   console.log('updating rust package');
   const currentDir = cwdArgs.join('/');
@@ -100,6 +141,8 @@ const updateCratesPackage = async (io, cwdArgs, pkg, semvar) => {
     `cargo release --no-publish --no-push --no-confirm --verbose --execute --no-verify --no-tag --config ../../release.toml ${semvar}`,
     currentDir,
   );
+
+  updatePackageLibContractVersion(cwdArgs);
 
   const sourceIdlDir = [...cwdArgs.slice(0, cwdArgs.length - 2), 'target', 'idl'].join('/');
 
@@ -181,7 +224,7 @@ module.exports = async ({ github, context, core, glob, io }, packages, versionin
       continue;
     }
 
-    for (let package of JSON.parse(packages)) {
+    for (let package of packages) {
       // make sure package doesn't have extra quotes or spacing
       package = package.replace(/\s+|\"|\'/g, '');
 
