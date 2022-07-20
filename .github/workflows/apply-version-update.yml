@@ -1,4 +1,4 @@
-name: Version updates
+name: Apply version update
 
 on:
   pull_request_review:
@@ -39,7 +39,6 @@ jobs:
         id: list-changed-files
         with:
           pull-number: ${{ github.event.pull_request.number }}
-          exclude: '[".github", "Cargo.lock", "Cargo.toml", "js/idl", "packge.json", "yarn.lock"]'
 
       # map fetched changed files to package / lang (list)
       - name: Get scope of changed packages
@@ -60,6 +59,10 @@ jobs:
             }, {})
             return JSON.stringify(Array.from(Object.keys(uniqueFilesObj)).map((el) => `\"${el}\"`))
 
+      - name: Print changed package output
+        shell: bash
+        run: echo "Changed packages - ${{ steps.get-changed-package-scope.outputs.result }}"
+
   get-version-scope:
     if:
       contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.review.author_association) == true &&
@@ -78,7 +81,7 @@ jobs:
 
   update-pr-with-changes:
     needs: [get-changes-scope, get-version-scope]
-    if: ${{ needs.get-version-scope.outputs.has-versioning == 'true' }}
+    if: ${{ needs.get-version-scope.outputs.has-versioning == 'true' && needs.get-changes-scope.outputs.changed-packages.length > 0 }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
