@@ -31,6 +31,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "@iarna/toml": "^2.2.5",
     "@project-serum/anchor": "^0.19.0",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
