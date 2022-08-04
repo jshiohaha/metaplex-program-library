@@ -1,0 +1,56 @@
+name: Version updates
+
+on:
+  pull_request_review:
+    types: [submitted, edited]
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+  issues: write # make comment
+  pull-requests: write # open PR
+
+env:
+  NODE_VERSION: 17.0.1
+  ANCHOR_VERSION: 0.22.0
+  SOLANA_VERSION_STABLE: 1.9.22
+  RUST_TOOLCHAIN: stable
+
+jobs:
+  dump-context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+  process-review-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process review content
+        id: process-review-content
+        run: |
+          REVIEW_CONTENT=$(cat << EOF
+          ${{ github.event.review.body }}
+          EOF)
+          echo "REVIEW_CONTENT<<EOF" >> $GITHUB_ENV
+          echo "$REVIEW_CONTENT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "${{ env.REVIEW_CONTENT }}"
+        shell: bash
+
+  get-version-scope:
+    runs-on: ubuntu-latest
+    outputs:
+      versioning: ${{ steps.parse-version-info.outputs.versioning }}
+      has-versioning: ${{ steps.parse-version-info.outputs.has-versioning }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Parse version info from review
+        uses: ./.github/actions/parse-version-command
+        id: parse-version-info
+        with:
+          body: ${{ env.REVIEW_CONTENT }}
