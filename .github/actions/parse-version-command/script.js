@@ -5,8 +5,11 @@ const VERSIONING_COMMAND = /^version/g;
 const parse = (body) => {
   const trimmedBody = body
     .toLowerCase()
-    .split('\n')
+    .split(/\n|\r/)
+    .map((t) => t.trim())
     .filter((t) => t.length > 0);
+
+  console.log('trimmedBody: ', trimmedBody);
 
   const validVersionCmds = trimmedBody.filter((c) => VERSIONING_COMMAND.test(c.trim()));
 
