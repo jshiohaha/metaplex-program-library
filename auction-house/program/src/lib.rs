@@ -39,6 +39,8 @@ anchor_lang::declare_id!("hausS13jsjafwWwGqZTUQRmWyvyxn9EQpqMwV1PBBmk");
 
 #[program]
 pub mod auction_house {
+
+    // auction_house
     use super::*;
 
     /// Withdraw `amount` from the Auction House Fee Account to a provided destination account.

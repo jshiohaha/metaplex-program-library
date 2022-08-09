@@ -10,3 +10,5 @@ pub mod utils;
 pub use solana_program;
 
 solana_program::declare_id!("vau1zxA2LbssAUEF7Gpw91zMM1LvXrvpzJtmZ58rPsn");
+
+// solana_program

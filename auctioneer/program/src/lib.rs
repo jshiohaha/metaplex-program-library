@@ -20,6 +20,8 @@ declare_id!("neer8g6yJq2mQM6KbnViEDAD4gr3gRZyMMf4F2p3MEh");
 
 #[program]
 pub mod auctioneer {
+
+    // auctioneer
     use super::*;
 
     /// Authorize the Auctioneer to manage an Auction House.
