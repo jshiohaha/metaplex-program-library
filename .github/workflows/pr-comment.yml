@@ -27,8 +27,26 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
+  qualify-workflow-run:
+    runs-on: ubuntu-latest
+    outputs:
+      output: ${{ steps.qualify-run.outputs.value }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: qualify-run
+        shell: bash
+        run: |
+          WORKFLOW_QUALIFIER=${{ contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.review.author_association) == true }}
+          echo "$WORKFLOW_QUALIFIER"
+          WORKFLOW_QUALIFIER=$WORKFLOW_QUALIFIER && ${{ contains(fromJson('["approved", "commented"]'), github.event.review.state) == true }}
+          echo "$WORKFLOW_QUALIFIER"
+          WORKFLOW_QUALIFIER=$WORKFLOW_QUALIFIER && ${{ github.event.pull_request.number > 0 }}
+          echo "$WORKFLOW_QUALIFIER"
+          echo "::set-output name=value::$WORKFLOW_QUALIFIER"
+
   get-changes-scope:
-    if: contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.review.author_association) == true && contains(fromJson('["approved", "commented"]'), github.event.review.state) == true
+    needs: [qualify-workflow-run]
+    if: ${{ needs.qualify-workflow-run.outputs.output == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       changed-packages: ${{ steps.get-changed-package-scope.outputs.result }}
@@ -61,7 +79,8 @@ jobs:
             return JSON.stringify(Array.from(Object.keys(uniqueFilesObj)).map((el) => `\"${el}\"`))
 
   get-version-scope:
-    if: contains(fromJson('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.review.author_association) == true && contains(fromJson('["approved", "commented"]'), github.event.review.state) == true
+    needs: [qualify-workflow-run]
+    if: ${{ needs.qualify-workflow-run.outputs.output == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       versioning: ${{ steps.parse-version-info.outputs.versioning }}
