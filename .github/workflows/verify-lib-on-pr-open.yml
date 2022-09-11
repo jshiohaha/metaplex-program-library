@@ -96,7 +96,14 @@ jobs:
       - uses: ./.github/actions/install-solana
         with:
           solana_version: ${{ env.SOLANA_VERSION_STABLE }}
-      # - uses: ./.github/actions/install-anchor
+      - uses: ./.github/actions/install-anchor
+
+      - name: Link anchor to package
+        run: |
+          mkdir /home/runner/work/metaplex-program-library/metaplex-program-library/candy-machine/js/.crates/
+          mkdir /home/runner/work/metaplex-program-library/metaplex-program-library/candy-machine/js/.crates/bin
+          ln -s /home/runner/.cargo/bin/anchor /home/runner/work/metaplex-program-library/metaplex-program-library/candy-machine/js/.crates/bin/anchor
+        shell: bash
 
       - name: Generate library for modified packages
         id: generate-package-lib
