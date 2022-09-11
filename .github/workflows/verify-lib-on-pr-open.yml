@@ -96,7 +96,7 @@ jobs:
       - uses: ./.github/actions/install-solana
         with:
           solana_version: ${{ env.SOLANA_VERSION_STABLE }}
-      - uses: ./.github/actions/install-anchor
+      # - uses: ./.github/actions/install-anchor
 
       - name: Generate library for modified packages
         id: generate-package-lib
