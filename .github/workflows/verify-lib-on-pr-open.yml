@@ -100,8 +100,7 @@ jobs:
 
       - name: Link anchor to package
         run: |
-          mkdir /home/runner/work/metaplex-program-library/metaplex-program-library/candy-machine/js/.crates/
-          mkdir /home/runner/work/metaplex-program-library/metaplex-program-library/candy-machine/js/.crates/bin
+          mkdir -p /home/runner/work/metaplex-program-library/metaplex-program-library/candy-machine/js/.crates/bin
           ln -s /home/runner/.cargo/bin/anchor /home/runner/work/metaplex-program-library/metaplex-program-library/candy-machine/js/.crates/bin/anchor
         shell: bash
 
